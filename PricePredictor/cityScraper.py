@@ -2,9 +2,28 @@
 from urllib.request import Request, urlopen
 from bs4 import BeautifulSoup
 import pandas as pd
+import math
 import csv
 import pprint
 import json
+def dist_to_ferry(lat,lon):
+    ferry = (37.795623,-122.393439)
+    result = (lat-ferry[0])*(lat-ferry[0])+(lon-ferry[1])*(lon-ferry[1])
+    return math.sqrt(result)
+    
+def transformDataFrame(df):
+    df=df.drop('page',1,errors='ignore')
+    df=df.dropna()
+    df=df[df.price < 1000]
+    df['log_dist_ferry']=df.apply(lambda x:1/dist_to_ferry(x['lat'],x['lon']),axis=1)
+    df['bed_futon'] = df['bed_type'].apply(lambda x: x=='Futon')
+    df['bed_real'] = df['bed_type'].apply(lambda x: x=='Real Bed')
+    df['bed_air'] = df['bed_type'].apply(lambda x: x=='Airbed')
+    df['bed_sofa'] = df['bed_type'].apply(lambda x:x=='Pull-out Sofa')
+    df['bed_couch'] = df['bed_type'].apply(lambda x: x=='Couch')
+    df['private_room'] = df['room_type'].apply(lambda x: x=='Private room')
+    df['entire_home'] = df['room_type'].apply(lambda x: x=='Entire home/apt')
+    return df
 
 class cityScraper:
     def __init__(self):
