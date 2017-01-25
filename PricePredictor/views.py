@@ -10,22 +10,19 @@ import os
 
 @app.route('/')
 def index():
-   user = { 'nickname': 'Brian' } 
    return render_template("index.html",
-       title = 'Home',
-       user = user,
+       title = 'AirBnB Price Predictor',
        result = '')
 @app.route('/',methods=['POST'])
 def my_form_post():
-    user = { 'nickname': 'Brian' } 
-    text = request.form['text']
+    text = request.form['text'].strip()
     c=cityScraper()
     featureDict = c.scrapeRoom(text)
     df = transformDataFrame(pd.DataFrame(featureDict,index=[0]))
     featureList = sorted(list(df.drop(['price','room_type','bed_type'],1)))
     forest = joblib.load('PricePredictor/static/forest_v1.pkl')
     pred_price = forest.predict(df[featureList])[0]
+    prices = {'pred':pred_price,'listed':df['price'][0]}
     return render_template("index.html",
        title = 'Home',
-       user = user,
-       result = pred_price)
+       result = prices)

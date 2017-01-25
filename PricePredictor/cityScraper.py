@@ -23,6 +23,7 @@ def transformDataFrame(df):
     df['bed_couch'] = df['bed_type'].apply(lambda x: x=='Couch')
     df['private_room'] = df['room_type'].apply(lambda x: x=='Private room')
     df['entire_home'] = df['room_type'].apply(lambda x: x=='Entire home/apt')
+    df['shared_room'] = df['room_type'].apply(lambda x: x=='Shared room')
     return df
 
 class cityScraper:
