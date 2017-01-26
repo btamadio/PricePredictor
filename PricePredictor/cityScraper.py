@@ -99,10 +99,23 @@ class cityScraper:
             req = Request(url,headers={'User-Agent':'Mozilla/5.0'})
             page = urlopen(req).read()
             soup = BeautifulSoup(page,"lxml")
-            featDict['star_rating']=0
-            star_rating_tag = soup.find('div',class_='star-rating')
-            if star_rating_tag:
-                featDict['star_rating']=star_rating_tag.get('content')
+            listing = soup.find('meta',id='_bootstrap-listing')
+            if listing:
+                listing_dict = json.loads(listing.get('content'))
+                for d in listing_dict['listing']['space_interface']:
+                    if d['label'] == 'Bathrooms:':
+                        featDict['num_bathrooms'] = d['value']
+                    if d['label'] == 'Bedrooms:':
+                        featDict['num_bedrooms'] = d['value']
+                    if d['label'] == 'Beds:':
+                        featDict['num_beds'] = d['value']
+                    if d['label'] == 'Property type:':
+                        featDict['prop_type'] = d['value']
+                featDict['review_score'] = listing_dict['listing']['review_details_interface']['review_score']
+                featDict['host_other_rev_count'] = listing_dict['listing']['review_details_interface']['host_other_property_review_count']
+                featDict['review_count'] = listing_dict['listing']['review_details_interface']['review_count']
+#                pprint.pprint(listing_dict['listing']['review_details_interface']['review_score'])
+#                pprint.pprint(listing_dict['listing']['space_interface'])
             meta = soup.find('meta',id='_bootstrap-room_options')
             if not meta:
                 return {}
@@ -113,7 +126,6 @@ class cityScraper:
             if dataDict:
                 amenList = dataDict['amenities']
                 featDict['acc_rating'] = dataDict['accuracy_rating']
-                featDict['bed_type'] = dataDict['bed_type']
                 featDict['cancel_policy'] = dataDict['cancel_policy']
                 featDict['checkin_rating'] = dataDict['checkin_rating']
                 featDict['cleanliness_rating'] = dataDict['cleanliness_rating']
@@ -125,14 +137,23 @@ class cityScraper:
                 featDict['loc_rating'] = dataDict['location_rating']
                 featDict['lat'] = dataDict['listing_lat']
                 featDict['lon'] = dataDict['listing_lng']
-                featDict['page'] = dataDict['page']
                 featDict['person_cap'] = dataDict['person_capacity']
                 featDict['pic_count'] = dataDict['picture_count']
                 featDict['price'] = dataDict['price']
-                featDict['room_type'] = dataDict['room_type']
                 featDict['saved_to_wishlist_count'] = dataDict['saved_to_wishlist_count']
                 featDict['value_rating'] = dataDict['value_rating']
-                featDict['rev_count'] = dataDict['visible_review_count']
+                featDict['bed_futon'] = (dataDict['bed_type'] == 'Futon')
+                featDict['bed_real'] = (dataDict['bed_type'] == 'Real Bed')
+                featDict['bed_air'] = (dataDict['bed_type'] == 'Airbed')
+                featDict['bed_sofa'] = (dataDict['bed_type'] == 'Pull-out Sofa')
+                featDict['bed_couch'] = (dataDict['bed_type'] == 'Couch')
+                
+                #df['log_dist_ferry']=df.apply(lambda x:1/dist_to_ferry(x['lat'],x['lon']),axis=1)
+                
+                featDict['private_room'] = (dataDict['room_type'] == 'Private room')
+                featDict['entire_home'] = (dataDict['room_type'] =='Entire home/apt')
+                featDict['shared_room'] = (dataDict['room_type'] =='Shared room')
+                
                 for i in range(1,51):
                     featDict['amen_'+str(i)] = i in amenList
                 return featDict
@@ -141,3 +162,5 @@ class cityScraper:
         except:
             return {}
 
+c = cityScraper()
+pprint.pprint(c.scrapeRoom('16297659'))
