@@ -6,6 +6,10 @@ import math
 import csv
 import pprint
 import json
+from sqlalchemy import create_engine
+from sqlalchemy_utils import database_exists, create_database
+import psycopg2
+
 def dist_to_ferry(lat,lon):
     ferry = (37.795623,-122.393439)
     result = (lat-ferry[0])*(lat-ferry[0])+(lon-ferry[1])*(lon-ferry[1])
@@ -73,20 +77,21 @@ class cityScraper:
                 idList.append(roomID)
                 f.write(roomID+'\n')
     def scrapeRooms(self,room_file,out_file):
+        dbname = 'airbnb_db'
+        username = 'brian'
+        pswd = ''
         room_list = []
         with open(room_file) as f:
             for line in f:
                 room_list.append(line.rstrip())
-
         f=open(out_file,'w')
         df = pd.DataFrame(self.scrapeRoom(room_list[0]),index=[int(room_list[0])])
-        print(df.head())
         df.to_csv(f)
         f.close()
         for room_id in room_list[1:100]:
-            f=open(out_file,'w')
+            f=open(out_file,'a')
             df=df.append(pd.DataFrame(self.scrapeRoom(room_id),index=[int(room_id)]))
-            df.to_csv(f)
+            df[df.index==int(room_id)].to_csv(f,header=False)
             f.close()
     def scrapeRoom(self,room_id):
         url = 'https://www.airbnb.com/rooms/'+room_id
