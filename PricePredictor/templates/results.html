@@ -13,12 +13,14 @@
 <p>List price: {{result.listed}}</p>
 <p>{{result.isDeal}} Deal!</p>
 
-{% for x in result.suggestions %}
-<p>
-<span>{{x.ind}}</span>
-<span>{{x.price}}</span>
-<span>{{x.distance}}</span>
-</p>
-{% endfor %}
+
+<table border="1">
+  <tr><th>Room ID</th><th>Distance (mi)</th><th>Price per night</th></tr>
+  {% for x in result.suggestions %}
+  <tr>
+    <td><a href="http://www.airbnb.com/rooms/{{x.ind}}">{{x.ind}}</a></td><td>{{x.distance}}</td><td>{{x.price}}</td>
+  </tr>
+  {% endfor %}
+</table>
 </body>
 </html>

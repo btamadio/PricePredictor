@@ -29,10 +29,10 @@ def my_form_post():
     pred_price = forest.predict(df[featureList])[0]
     list_price = df['price'][0]
     loc = (df['lat'][0],df['lon'][0])
-    res['pred'] = pred_price
-    res['listed'] = list_price
+    res['pred'] = '${0:.2f}'.format(pred_price)
+    res['listed'] = '${0:.2f}'.format(list_price)
     
-    if res['pred'] < res['listed']:
+    if pred_price < list_price:
         res['isDeal'] = 'Bad'
     else:
         res['isDeal'] = 'Good'
