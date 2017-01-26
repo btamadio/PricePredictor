@@ -47,6 +47,7 @@ def my_form_post():
     sql_query = 'SELECT index,pred_price,price,lat,lon FROM city_table;'
     airbnb_df = pd.read_sql_query(sql_query,con,index_col='index')
     airbnb_df['loc'] = airbnb_df[['lat','lon']].apply(tuple,axis=1)
+
     #calculate distance between our listing and all others
     airbnb_df['distance'] = airbnb_df['loc'].apply( lambda x: vincenty(x,loc).miles )
     airbnb_df = airbnb_df[airbnb_df.distance < 1]
@@ -54,9 +55,13 @@ def my_form_post():
 
     #calculate similarity between our listing and all others
     airbnb_df['sim_dist'] = airbnb_df['pred_price'].apply( lambda x: abs(x - pred_price) )
+    
     #list the 5 most similar in order of price
     airbnb_df = airbnb_df.sort('sim_dist',ascending=1).head(5).sort('price',ascending=1)
     airbnb_df['ind'] = airbnb_df.index
+    
+    airbnb_df['price'] = airbnb_df['price'].apply( lambda x : '${0:.2f}'.format(x) )
+    airbnb_df['distance'] = airbnb_df['distance'].apply( lambda x : '{0:.2f}'.format(x) )
     res['suggestions'] = airbnb_df.head(5).to_dict('records')
     return render_template("results.html",
        title = 'Home',
