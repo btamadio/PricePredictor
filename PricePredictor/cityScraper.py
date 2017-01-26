@@ -17,16 +17,29 @@ def dist_to_ferry(lat,lon):
     
 def transformDataFrame(df):
     df=df.dropna()
-    df=df[df.price < 1000]
-    #df['log_dist_ferry']=df.apply(lambda x:1/dist_to_ferry(x['lat'],x['lon']),axis=1)
-    # df['bed_futon'] = df['bed_type'].apply(lambda x: x=='Futon')
-    # df['bed_real'] = df['bed_type'].apply(lambda x: x=='Real Bed')
-    # df['bed_air'] = df['bed_type'].apply(lambda x: x=='Airbed')
-    # df['bed_sofa'] = df['bed_type'].apply(lambda x:x=='Pull-out Sofa')
-    # df['bed_couch'] = df['bed_type'].apply(lambda x: x=='Couch')
-    # df['private_room'] = df['room_type'].apply(lambda x: x=='Private room')
-    # df['entire_home'] = df['room_type'].apply(lambda x: x=='Entire home/apt')
-    # df['shared_room'] = df['room_type'].apply(lambda x: x=='Shared room')
+    df=df.drop(['room_type','hosting_id'],errors='ignore')
+    df=df[df.price < 300]
+    room_cat = [{'is_loft':'Loft'},
+                {'is_condo':'Condominium'},
+                {'is_bnb':'Bed & Breakfast'},
+                {'is_guesthouse':'Guesthouse'},
+                {'is_cabin':'Cabin'},
+                {'is_lighthouse':'Lighthouse'},
+                {'is_dorm':'Dorm'},
+                {'is_bungalow':'Bungalow'},
+                {'is_bout_hotel':'Boutique hotel'},
+                {'is_treehouse':'Treehouse'},
+                {'is_timeshare':'Timeshare'},
+                {'is_hostel':'Hostel'},
+                {'is_chalet':'Chalet'},
+                {'is_boat':'Boat'},
+                {'is_cave':'Cave'},
+                {'is_castle':'Castle'}]
+    for cat in room_cat:
+        key = list(cat.keys())[0]
+        df[key] = df['prop_type'].apply(lambda x:x==cat[key])
+    df=df.drop('prop_type',1)
+    df['num_bathrooms']=df['num_bathrooms'].apply(lambda x:int(x[0]))
     return df
 
 class cityScraper:
@@ -92,7 +105,7 @@ class cityScraper:
         df = pd.DataFrame(self.scrapeRoom(room_list[0]),index=[int(room_list[0])])
         df.to_csv(f)
         f.close()
-        for room_id in room_list[1:100]:
+        for room_id in room_list:
             f=open(out_file,'a')
             df=df.append(pd.DataFrame(self.scrapeRoom(room_id),index=[int(room_id)]))
             df[df.index==int(room_id)].to_csv(f,header=False)
