@@ -8,7 +8,7 @@
             <input type="text" name="text">
             <input type="submit" name="my-form" value="Send">
 </form>
-<p>Room ID: {{result.room_id}}</p>
+<span>Room ID: </span><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></p>
 <p>Predicted price: {{result.pred}}</p>
 <p>List price: {{result.listed}}</p>
 <p>{{result.isDeal}} Deal!</p>
