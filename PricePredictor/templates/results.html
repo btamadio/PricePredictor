@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>{{title}}</title>
+    </head>
+    <body>
+        <h1>Enter Room Code</h1>
+        <form action="." method="POST">
+            <input type="text" name="text">
+            <input type="submit" name="my-form" value="Send">
+</form>
+<p>Room ID: {{result.room_id}}</p>
+<p>Predicted price: {{result.pred}}</p>
+<p>List price: {{result.listed}}</p>
+<p>{{result.isDeal}} Deal!</p>
+
+{% for x in result.suggestions %}
+<p>
+<span>{{x.room_id}}</span>
+<span>{{x.price}}</span>
+</p>
+{% endfor %}
+</body>
+</html>
