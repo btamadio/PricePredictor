@@ -48,7 +48,11 @@ class cityScraper:
                     lastPage = pageLink
         return lastPage
     def scrapeRoomIDs(self,city_name,room_type):
-        for (price_min,price_max) in [(0,40),(41,45),(46,50),(51,55),(56,59),(60,61),(62,63),(64,65),(66,68),(69,70),(71,73),(74,75),(76,78),(79,80),(81,85),(86,90),(91,95),(96,100),(101,150),(151,200),(201,-1)]:
+        priceMinList = [0]+list(range(41,100))+list(range(100,200,5))+[200]
+        priceMaxList = list(range(40,100))+list(range(104,201,5))+[-1]
+        for i in range(len(priceMinList)):
+            price_min = priceMinList[i]
+            price_max = priceMaxList[i]
             lastPage = self.getLastPage(city_name,room_type,price_min,price_max)
             for page_num in range(1,lastPage+1):
                 url = self.getURL(city_name,room_type,price_min,price_max,page_num)
@@ -70,9 +74,9 @@ class cityScraper:
             url= 'https://www.airbnb.com/s/'+city_name+'?room_types[]='+room_type+'&price_min='+str(price_min)+'&page='+str(page_num)
         return url
     def writeRoomIDs(self,city_name,room_type,out_file):
-        f = open(out_file,'w')
         idList = []
         for roomID in self.scrapeRoomIDs(city_name,room_type):
+            f = open(out_file,'a')
             if not roomID in idList:
                 idList.append(roomID)
                 f.write(roomID+'\n')
