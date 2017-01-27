@@ -92,6 +92,9 @@ def my_form_post():
                 {'is_tent':'Tent'},
                 {'is_townhouse':'Townhouse'},
                 {'is_villa':'Villa'}]
+    res['this_room'][0]['prop_type'] = ''
+    for sugg in res['suggestions']:
+        sugg['prop_type'] = ''
     for cat in room_cat:
         key = list(cat.keys())[0]
         for sugg in res['suggestions']:
