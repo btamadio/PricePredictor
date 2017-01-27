@@ -3,7 +3,7 @@
         <title>{{title}}</title>
     </head>
     <body>
-        <h1>Enter Room Code</h1>
+        <h1>Enter Listing URL or Room Code</h1>
         <form action="." method="POST">
             <input type="text" name="text">
             <input type="submit" name="my-form" value="Send">
@@ -15,10 +15,34 @@
 
 
 <table border="1">
-  <tr><th>Room ID</th><th>Distance (mi)</th><th>Price per night</th></tr>
+  <tr>
+    <th>Room ID</th>
+    <th>Price per Night</th>
+    <th>Distance (mi)</th>
+    <th>Guest Satisfaction</th>
+    <th>Accomodates</th>
+    <th>Cleanliness</th>
+    <th>Property Type</th>
+  </tr>
+  <tr>
+    <td><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></td>
+      <td>{{result.this_room[0].price}}</td>
+      <td>0.0</td>
+      <td>{{result.this_room[0].guest_sat}}</td>
+      <td>{{result.this_room[0].person_cap}}</td>
+      <td>{{result.this_room[0].cleanliness_rating}}</td>
+      <td>{{result.this_room[0].prop_type}}</td>
+  </tr>
   {% for x in result.suggestions %}
   <tr>
-    <td><a href="http://www.airbnb.com/rooms/{{x.ind}}">{{x.ind}}</a></td><td>{{x.distance}}</td><td>{{x.price}}</td>
+    <td><a
+      href="http://www.airbnb.com/rooms/{{x.ind}}">{{x.ind}}</a></td>
+      <td>{{x.price}}</td>
+      <td>{{x.distance}}</td>
+      <td>{{x.guest_sat}}</td>
+      <td>{{x.person_cap}}</td>
+      <td>{{x.cleanliness_rating}}</td>
+      <td>{{x.prop_type}}</td>
   </tr>
   {% endfor %}
 </table>

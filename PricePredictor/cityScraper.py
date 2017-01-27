@@ -18,7 +18,9 @@ def dist_to_ferry(lat,lon):
 def transformDataFrame(df):
     df=df.dropna()
     df=df.drop(['room_type','hosting_id'],errors='ignore')
-    df=df[df.price < 300]
+    #df = df[ df['price'].apply(lambda x: str(x).isdigit()) ]
+    #df['price'] = df['price'].apply(lambda x:int(x))
+    #df=df[df.price < 300]
     room_cat = [{'is_loft':'Loft'},
                 {'is_condo':'Condominium'},
                 {'is_bnb':'Bed & Breakfast'},
@@ -39,7 +41,7 @@ def transformDataFrame(df):
         key = list(cat.keys())[0]
         df[key] = df['prop_type'].apply(lambda x:x==cat[key])
     df=df.drop('prop_type',1)
-    df['num_bathrooms']=df['num_bathrooms'].apply(lambda x:int(x[0]))
+    df['num_bathrooms']=df['num_bathrooms'].apply(lambda x:float(str(x).strip('+')))
     return df
 
 class cityScraper:
@@ -118,6 +120,12 @@ class cityScraper:
             req = Request(url,headers={'User-Agent':'Mozilla/5.0'})
             page = urlopen(req).read()
             soup = BeautifulSoup(page,"lxml")
+            price_span = soup.find('span',id='book-it-price-string')
+            children = price_span.findChildren()
+            if len(children) > 0:
+                featDict['price'] = children[0].text
+            else:
+                featDict['price'] = 0
             listing = soup.find('meta',id='_bootstrap-listing')
             if listing:
                 listing_dict = json.loads(listing.get('content'))
@@ -165,7 +173,8 @@ class cityScraper:
                         featDict['dist_ferry']=dist_to_ferry(featDict['lat'],featDict['lon'])
                         featDict['person_cap'] = dataDict['person_capacity']
                         featDict['pic_count'] = dataDict['picture_count']
-                        featDict['price'] = dataDict['price']
+                        if featDict['price'] == 0:
+                            featDict['price'] = dataDict['price']
                         featDict['saved_to_wishlist_count'] = dataDict['saved_to_wishlist_count']
                         featDict['value_rating'] = dataDict['value_rating']
                         featDict['bed_futon'] = (dataDict['bed_type'] == 'Futon')
