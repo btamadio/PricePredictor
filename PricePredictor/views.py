@@ -3,6 +3,7 @@ from flask import request
 from PricePredictor import app
 from PricePredictor.cityScraper import cityScraper
 from PricePredictor.cityScraper import transformDataFrame
+from scipy.spatial.distance import cosine
 import pandas as pd
 import math
 import sys
@@ -20,24 +21,19 @@ def index():
        title = 'AirBnB Price Predictor')
 @app.route('/',methods=['POST'])
 def my_form_post():
+    max_dist = 1.0
+    featureList = joblib.load('PricePredictor/static/featureList_binary_v1.pkl')
+    dbList = joblib.load('PricePredictor/static/dbList_binary_v1.pkl')
+
     res= {'room_id':request.form['text'].strip()}
     c=cityScraper()
     featureDict = c.scrapeRoom(res['room_id'])
-    df = transformDataFrame(pd.DataFrame(featureDict,index=[int(res['room_id'])]))
-#    print(df.head())
-    forest = joblib.load('PricePredictor/static/forest_v1.pkl')
-    featureList = joblib.load('PricePredictor/static/featureList_v1.pkl')
-    pred_price = forest.predict(df[featureList])[0]
-    list_price = int(df['price'].iloc[0].strip('$'))
-    loc = (df['lat'].iloc[0],df['lon'].iloc[0])
-    res['pred'] = '${0:.2f}'.format(pred_price)
-    res['listed'] = '${0:.2f}'.format(list_price)
-    
-    if pred_price < list_price:
-        res['isDeal'] = 'Bad'
-    else:
-        res['isDeal'] = 'Good'
-    
+    selected_df = pd.DataFrame(featureDict,index=[int(res['room_id'])])
+    selected_df = selected_df[dbList]
+#    print(selected_df[dbList].dtypes)
+    list_price = int(selected_df['price'].iloc[0].strip('$'))
+    loc = (selected_df['lat'].iloc[0],selected_df['lon'].iloc[0])
+    print('Querying database for room info')
     dbname = 'airbnb_db'
     username = 'brian'
     pswd = ''
@@ -45,64 +41,39 @@ def my_form_post():
     con = None
     con = psycopg2.connect(database = dbname, user = username, host='localhost', password=pswd)
 
-    sql_query = 'SELECT * FROM city_table;'
-    airbnb_df = pd.read_sql_query(sql_query,con,index_col='index')
-    airbnb_df['loc'] = airbnb_df[['lat','lon']].apply(tuple,axis=1)
+    sql_query = 'SELECT * FROM binary_table;'
+    full_df = pd.read_sql_query(sql_query,con,index_col='index')
+    full_df['loc'] = full_df[['lat','lon']].apply(tuple,axis=1)
 
+    print('Calculating distances')
     #calculate distance between our listing and all others
-    airbnb_df['distance'] = airbnb_df['loc'].apply( lambda x: vincenty(x,loc).miles )
-    airbnb_df = airbnb_df[airbnb_df.distance < 1]
-    airbnb_df = airbnb_df[airbnb_df.index != int(res['room_id'])]
+    full_df['distance'] = full_df['loc'].apply( lambda x: vincenty(x,loc).miles )
+    full_df = full_df[full_df.distance < max_dist]
+    max_price = 1.1*list_price
+    full_df = full_df[full_df.price < max_price]
+    full_df = full_df[full_df.index != int(res['room_id'])]
+    if selected_df['person_cap'].values[0] > 1:
+        full_df = full_df[full_df.person_cap > 1]
+    print('Calculating feature vectors')
+    def getFeatureVec(d):
+        return [int(d[i]) for i in featureList]
+    full_df['feature_vec'] = full_df.apply(getFeatureVec,1)
+    selected_df['feature_vec'] = selected_df.apply(getFeatureVec,1)
+    print('Calculating similarity distance')
+    full_df['sim_dist'] = full_df['feature_vec'].apply(lambda x:cosine(x,selected_df['feature_vec'].values[0]))
 
-    #calculate similarity between our listing and all others
-    airbnb_df['sim_dist'] = airbnb_df['pred_price'].apply( lambda x: abs(x - pred_price) )
-    
-    #list the 5 most similar in order of price
-    airbnb_df = airbnb_df.sort('sim_dist',ascending=1).head(5).sort('price',ascending=1)
-    airbnb_df['ind'] = airbnb_df.index
-    
-    airbnb_df['price'] = airbnb_df['price'].apply( lambda x : '${0:.0f}'.format(x) )
-    airbnb_df['distance'] = airbnb_df['distance'].apply( lambda x : '{0:.2f}'.format(x) )
-    airbnb_df['review_score'] = airbnb_df['review_score'].apply( lambda x: str(int(x)) )
-    airbnb_df['person_cap'] = airbnb_df['person_cap'].apply(lambda x: int(x))
-    airbnb_df['cleanliness_rating'] = airbnb_df['cleanliness_rating'].apply(lambda x: int(x))
-    airbnb_df['guest_sat'] = airbnb_df['guest_sat'].apply(lambda x: int(x))
-    res['suggestions'] = airbnb_df.head(6).to_dict('records')
-    res['this_room'] = df.to_dict('records')
+    # #list the 5 most similar in order of price
+    full_df = full_df.sort('sim_dist',ascending=1).head(5).sort('price',ascending=1)
+    full_df['ind'] = full_df.index
+    full_df['price'] = full_df['price'].apply( lambda x : '${0:.0f}'.format(x) )
+    full_df['distance'] = full_df['distance'].apply( lambda x : '{0:.2f}'.format(x) )
+    full_df['person_cap'] = full_df['person_cap'].apply(lambda x: int(x))
+    full_df['cleanliness_rating'] = full_df['cleanliness_rating'].apply(lambda x: int(x))
+    full_df['guest_sat'] = full_df['guest_sat'].apply(lambda x: int(x))
+    full_df['num_beds'] = full_df['num_beds'].apply(lambda x:int(x))
+    res['suggestions'] = full_df.head(6).to_dict('records')
+    res['this_room'] = selected_df.to_dict('records')
 
-    room_cat = [{'is_loft':'Loft'},
-                {'is_condo':'Condominium'},
-                {'is_bnb':'Bed & Breakfast'},
-                {'is_guesthouse':'Guesthouse'},
-                {'is_cabin':'Cabin'},
-                {'is_lighthouse':'Lighthouse'},
-                {'is_dorm':'Dorm'},
-                {'is_bungalow':'Bungalow'},
-                {'is_bout_hotel':'Boutique hotel'},
-                {'is_treehouse':'Treehouse'},
-                {'is_timeshare':'Timeshare'},
-                {'is_hostel':'Hostel'},
-                {'is_chalet':'Chalet'},
-                {'is_boat':'Boat'},
-                {'is_cave':'Cave'},
-                {'is_castle':'Castle'},
-                {'is_apt':'Apartment'},
-                {'is_house':'House'},
-                {'is_other':'Other'},
-                {'is_tent':'Tent'},
-                {'is_townhouse':'Townhouse'},
-                {'is_villa':'Villa'}]
-    res['this_room'][0]['prop_type'] = ''
-    for sugg in res['suggestions']:
-        sugg['prop_type'] = ''
-    for cat in room_cat:
-        key = list(cat.keys())[0]
-        for sugg in res['suggestions']:
-            if sugg[key]:
-                sugg['prop_type'] = cat[key]
-        if res['this_room'][0][key]:
-            res['this_room'][0]['prop_type'] = cat[key]
-    
     return render_template("results.html",
        title = 'Home',
        result = res)

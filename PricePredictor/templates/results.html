@@ -9,9 +9,9 @@
             <input type="submit" name="my-form" value="Send">
 </form>
 <span>Room ID: </span><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></p>
-<p>Predicted price: {{result.pred}}</p>
-<p>List price: {{result.listed}}</p>
-<p>{{result.isDeal}} Deal!</p>
+<!-- <p>Predicted price: {{result.pred}}</p> -->
+<!-- <p>List price: {{result.listed}}</p> -->
+<!-- <p>{{result.isDeal}} Deal!</p> -->
 
 
 <table border="1">
@@ -19,19 +19,22 @@
     <th>Room ID</th>
     <th>Price per Night</th>
     <th>Distance (mi)</th>
+    <th>Accommodates</th>
+    <th>Number of beds</th>
+    <th>Number of bathrooms</th>
     <th>Guest Satisfaction</th>
-    <th>Accomodates</th>
     <th>Cleanliness</th>
-    <th>Property Type</th>
+
   </tr>
   <tr>
     <td><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></td>
       <td>{{result.this_room[0].price}}</td>
       <td>0.0</td>
-      <td>{{result.this_room[0].guest_sat}}</td>
       <td>{{result.this_room[0].person_cap}}</td>
+      <td>{{result.this_room[0].num_beds}}</td>
+      <td>{{result.this_room[0].num_bathrooms}}</td>
+      <td>{{result.this_room[0].guest_sat}}</td>
       <td>{{result.this_room[0].cleanliness_rating}}</td>
-      <td>{{result.this_room[0].prop_type}}</td>
   </tr>
   {% for x in result.suggestions %}
   <tr>
@@ -39,10 +42,11 @@
       href="http://www.airbnb.com/rooms/{{x.ind}}">{{x.ind}}</a></td>
       <td>{{x.price}}</td>
       <td>{{x.distance}}</td>
-      <td>{{x.guest_sat}}</td>
       <td>{{x.person_cap}}</td>
+      <td>{{x.num_beds}}</td>
+      <td>{{x.num_bathrooms}}</td>
+      <td>{{x.guest_sat}}</td>
       <td>{{x.cleanliness_rating}}</td>
-      <td>{{x.prop_type}}</td>
   </tr>
   {% endfor %}
 </table>

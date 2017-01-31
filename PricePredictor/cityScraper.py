@@ -14,34 +14,26 @@ def dist_to_ferry(lat,lon):
     ferry = (37.795623,-122.393439)
     result = (lat-ferry[0])*(lat-ferry[0])+(lon-ferry[1])*(lon-ferry[1])
     return math.sqrt(result)
-    
 def transformDataFrame(df):
     df=df.dropna()
-    df=df.drop(['room_type','hosting_id'],errors='ignore')
-    #df = df[ df['price'].apply(lambda x: str(x).isdigit()) ]
-    #df['price'] = df['price'].apply(lambda x:int(x))
-    #df=df[df.price < 300]
-    room_cat = [{'is_loft':'Loft'},
-                {'is_condo':'Condominium'},
-                {'is_bnb':'Bed & Breakfast'},
-                {'is_guesthouse':'Guesthouse'},
-                {'is_cabin':'Cabin'},
-                {'is_lighthouse':'Lighthouse'},
-                {'is_dorm':'Dorm'},
-                {'is_bungalow':'Bungalow'},
-                {'is_bout_hotel':'Boutique hotel'},
-                {'is_treehouse':'Treehouse'},
-                {'is_timeshare':'Timeshare'},
-                {'is_hostel':'Hostel'},
-                {'is_chalet':'Chalet'},
-                {'is_boat':'Boat'},
-                {'is_cave':'Cave'},
-                {'is_castle':'Castle'}]
-    for cat in room_cat:
-        key = list(cat.keys())[0]
-        df[key] = df['prop_type'].apply(lambda x:x==cat[key])
-    df=df.drop('prop_type',1)
-    df['num_bathrooms']=df['num_bathrooms'].apply(lambda x:float(str(x).strip('+')))
+    temp_df = df
+    df['num_bathrooms']=temp_df['num_bathrooms'].apply(lambda x:float(str(x).strip('+')))
+    temp_df = df
+    df['is_apt'] = df['prop_type'].apply(lambda x: x=='Apartment')
+    for i in range(1,51):
+        key = 'amen_'+str(i)
+        if key in df:
+            df[key] = temp_df[key].apply(bool)#lambda x:bool(x))
+    temp_df = df
+    df['instant_book'] = temp_df['instant_book'].apply(lambda x:bool(x))
+    df = df.drop(['prop_type'],1)
+
+    threshDict = {'acc_rating':9,'cancel_policy':4,'checkin_rating':9,'cleanliness_rating':9,'communication_rating':9,'guest_sat':95,'host_other_rev_count':0,'loc_rating':9,'num_bathrooms':0.5,'num_beds':1,'person_cap':1,'pic_count':26,'value_rating':9}
+    for key in threshDict:
+        df['bin_'+key] = df[key].apply( lambda x:x>threshDict[key] )
+    df['bin_review_count'] = df['review_count'].apply(lambda x:(x>6 and x<30))
+    df['bin_is_apt'] = df['is_apt']
+    df['bin_instant_book'] = df['instant_book']
     return df
 
 class cityScraper:
@@ -115,7 +107,8 @@ class cityScraper:
     def scrapeRoom(self,room_id):
         url = 'https://www.airbnb.com/rooms/'+room_id
         print('Scraping room info from ',url)
-        featDict = {'is_apt':False,'is_house':False,'is_other':False,'is_tent':False,'is_townhouse':False,'is_villa':False}
+        featDict = {}
+
         try:
             req = Request(url,headers={'User-Agent':'Mozilla/5.0'})
             page = urlopen(req).read()
@@ -131,22 +124,15 @@ class cityScraper:
                 listing_dict = json.loads(listing.get('content'))
                 for d in listing_dict['listing']['space_interface']:
                     if d['label'] == 'Bathrooms:':
-                        featDict['num_bathrooms'] = d['value']
-                    if d['label'] == 'Bedrooms:':
-                        featDict['num_bedrooms'] = d['value']
+                        featDict['num_bathrooms'] = float(d['value'])
                     if d['label'] == 'Beds:':
-                        featDict['num_beds'] = d['value']
+                        featDict['num_beds'] = int(d['value'])
                     if d['label'] == 'Property type:':
-                        featDict['prop_type'] = d['value']
                         featDict['is_apt'] = (d['value'] == 'Apartment')
-                        featDict['is_house'] = (d['value'] == 'House')
-                        featDict['is_other'] = (d['value'] == 'Other')
-                        featDict['is_tent'] = (d['value'] == 'Tent')
-                        featDict['is_townhouse'] = (d['value'] == 'Townhouse')
-                        featDict['is_villa'] = (d['value'] == 'Villa')
-                featDict['review_score'] = listing_dict['listing']['review_details_interface']['review_score']
-                featDict['host_other_rev_count'] = listing_dict['listing']['review_details_interface']['host_other_property_review_count']
-                featDict['review_count'] = listing_dict['listing']['review_details_interface']['review_count']
+                        featDict['bin_is_apt'] = int(d['value'] == 'Apartment')
+                featDict['host_other_rev_count'] = int(listing_dict['listing']['review_details_interface']['host_other_property_review_count'])
+                featDict['review_count'] = int(listing_dict['listing']['review_details_interface']['review_count'])
+
             meta = soup.find('meta',id='_bootstrap-room_options')
             if not meta:
                 pass
@@ -158,37 +144,29 @@ class cityScraper:
                     dataDict = dict0['airEventData']
                     if dataDict:
                         amenList = dataDict['amenities']
-                        featDict['acc_rating'] = dataDict['accuracy_rating']
-                        featDict['cancel_policy'] = dataDict['cancel_policy']
-                        featDict['checkin_rating'] = dataDict['checkin_rating']
-                        featDict['cleanliness_rating'] = dataDict['cleanliness_rating']
-                        featDict['communication_rating'] = dataDict['communication_rating']
-                        featDict['guest_sat'] = dataDict['guest_satisfaction_overall']
-                        featDict['hosting_id'] = dataDict['hosting_id']
-                        featDict['instant_book'] = dataDict['instant_book_possible']
-                        featDict['is_superhost'] = dataDict['is_superhost']
-                        featDict['loc_rating'] = dataDict['location_rating']
-                        featDict['lat'] = dataDict['listing_lat']
-                        featDict['lon'] = dataDict['listing_lng']
-                        featDict['dist_ferry']=dist_to_ferry(featDict['lat'],featDict['lon'])
-                        featDict['person_cap'] = dataDict['person_capacity']
-                        featDict['pic_count'] = dataDict['picture_count']
+                        featDict['acc_rating'] = int(dataDict['accuracy_rating'])
+                        featDict['cancel_policy'] = int(dataDict['cancel_policy'])
+                        featDict['checkin_rating'] = int(dataDict['checkin_rating'])
+                        featDict['cleanliness_rating'] = int(dataDict['cleanliness_rating'])
+                        featDict['communication_rating'] = int(dataDict['communication_rating'])
+                        featDict['guest_sat'] = int(dataDict['guest_satisfaction_overall'])
+                        featDict['instant_book'] = int(dataDict['instant_book_possible'])
+                        featDict['bin_instant_book'] = int(dataDict['instant_book_possible'])
+                        featDict['loc_rating'] = int(dataDict['location_rating'])
+                        featDict['lat'] = float(dataDict['listing_lat'])
+                        featDict['lon'] = float(dataDict['listing_lng'])
+                        featDict['person_cap'] = int(dataDict['person_capacity'])
+                        featDict['pic_count'] = int(dataDict['picture_count'])
                         if featDict['price'] == 0:
                             featDict['price'] = dataDict['price']
-                        featDict['saved_to_wishlist_count'] = dataDict['saved_to_wishlist_count']
                         featDict['value_rating'] = dataDict['value_rating']
-                        featDict['bed_futon'] = (dataDict['bed_type'] == 'Futon')
-                        featDict['bed_real'] = (dataDict['bed_type'] == 'Real Bed')
-                        featDict['bed_air'] = (dataDict['bed_type'] == 'Airbed')
-                        featDict['bed_sofa'] = (dataDict['bed_type'] == 'Pull-out Sofa')
-                        featDict['bed_couch'] = (dataDict['bed_type'] == 'Couch')
-                
-                        featDict['private_room'] = (dataDict['room_type'] == 'Private room')
-                        featDict['entire_home'] = (dataDict['room_type'] =='Entire home/apt')
-                        featDict['shared_room'] = (dataDict['room_type'] =='Shared room')
-                
                         for i in range(1,51):
-                            featDict['amen_'+str(i)] = (i in amenList)
+                            featDict['amen_'+str(i)] = int(i in amenList)
+            threshDict = {'acc_rating':9,'cancel_policy':4,'checkin_rating':9,'cleanliness_rating':9,'communication_rating':9,'guest_sat':95,'host_other_rev_count':0,'loc_rating':9,
+                          'num_bathrooms':0.5,'num_beds':1,'person_cap':1,'pic_count':26,'value_rating':9}                            
+            for key in threshDict:
+                featDict['bin_'+key] = int(featDict[key] > threshDict[key])
+            featDict['bin_review_count'] = int(featDict['review_count'] > 6 and featDict['review_count'] < 30)
             return featDict
         except:
             return {}
