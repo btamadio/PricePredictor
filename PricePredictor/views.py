@@ -24,13 +24,12 @@ def my_form_post():
     max_dist = 1.0
     featureList = joblib.load('PricePredictor/static/featureList_binary_v1.pkl')
     dbList = joblib.load('PricePredictor/static/dbList_binary_v1.pkl')
-
+    importance_dict = joblib.load('PricePredictor/static/importance_dict_v1.pkl')
     res= {'room_id':request.form['text'].strip()}
     c=cityScraper()
     featureDict = c.scrapeRoom(res['room_id'])
     selected_df = pd.DataFrame(featureDict,index=[int(res['room_id'])])
     selected_df = selected_df[dbList]
-#    print(selected_df[dbList].dtypes)
     list_price = int(selected_df['price'].iloc[0].strip('$'))
     loc = (selected_df['lat'].iloc[0],selected_df['lon'].iloc[0])
     print('Querying database for room info')
@@ -57,10 +56,25 @@ def my_form_post():
     print('Calculating feature vectors')
     def getFeatureVec(d):
         return [int(d[i]) for i in featureList]
+    def sim_dist(v1,v2):
+        if len(v1) != len(v2):
+            print ('Error: mismatched feature vectors')
+            sys.exit(1)
+        i=0
+        res = 0
+        for key in sorted(importance_dict):
+            if key != featureList[i]:
+                print ('Error: mismatched feature names')
+                print (importance_dict[key],featureList[i])
+                sys.exit(1)
+            res += (v1[i]-v2[i])*importance_dict[key]*(v1[i]-v2[i])
+            i+=1
+        return math.sqrt(res)
     full_df['feature_vec'] = full_df.apply(getFeatureVec,1)
     selected_df['feature_vec'] = selected_df.apply(getFeatureVec,1)
     print('Calculating similarity distance')
-    full_df['sim_dist'] = full_df['feature_vec'].apply(lambda x:cosine(x,selected_df['feature_vec'].values[0]))
+    full_df['sim_dist'] = full_df['feature_vec'].apply(lambda x:sim_dist(x,selected_df['feature_vec'].values[0]))
+#    full_df['sim_dist'] = full_df['feature_vec'].apply(lambda x:cosine(x,selected_df['feature_vec'].values[0]))
 
     # #list the 5 most similar in order of price
     full_df = full_df.sort('sim_dist',ascending=1).head(5).sort('price',ascending=1)
