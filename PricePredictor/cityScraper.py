@@ -8,6 +8,7 @@ import pprint
 import json
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
+from sklearn.externals import joblib
 import psycopg2
 
 def dist_to_ferry(lat,lon):
@@ -122,6 +123,12 @@ class cityScraper:
             listing = soup.find('meta',id='_bootstrap-listing')
             if listing:
                 listing_dict = json.loads(listing.get('content'))
+                #amen_name_dict = joblib.load('amen_name_dict.pkl')
+                #for amen in listing_dict['listing']['listing_amenities']:
+                #    amen_name_dict[amen['id']] = amen['name']
+                #joblib.dump(amen_name_dict,'amen_name_dict.pkl',compress=1)
+                #for key in sorted (amen_name_dict):
+                    #print (key,':',amen_name_dict[key])
                 for d in listing_dict['listing']['space_interface']:
                     if d['label'] == 'Bathrooms:':
                         featDict['num_bathrooms'] = float(d['value'])

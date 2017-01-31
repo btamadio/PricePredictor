@@ -25,6 +25,7 @@ def my_form_post():
     featureList = joblib.load('PricePredictor/static/featureList_binary_v1.pkl')
     dbList = joblib.load('PricePredictor/static/dbList_binary_v1.pkl')
     importance_dict = joblib.load('PricePredictor/static/importance_dict_v1.pkl')
+    amen_name_dict = joblib.load('PricePredictor/static/amen_name_dict.pkl')
     res= {'room_id':request.form['text'].strip()}
     c=cityScraper()
     featureDict = c.scrapeRoom(res['room_id'])
