@@ -30,26 +30,25 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
       <![endif]-->
     </head>
-    <body>
-        <h1>Enter Listing URL or Room Code</h1>
-        <form action="." method="POST">
-            <input type="text" name="text">
+<body>
+    <div class="container">
+
+      <div class="starter-template">
+	<h1>Enter URL or AirBnB Room Code</h1>
+	<form action="." method="POST">
+	<input type="text" name="text">
             <input type="submit" name="my-form" value="Send">
-</form>
-<span>Room ID: </span><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></p>
-<!-- <p>Predicted price: {{result.pred}}</p> -->
-<!-- <p>List price: {{result.listed}}</p> -->
-<!-- <p>{{result.isDeal}} Deal!</p> -->
-
-
-<table border="1">
-  <tr>
+	</form>
+	<span>Room ID: </span><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></p>
+      </div>
+      <table class="table table-hover">
+	  <tr>
     <th>Room ID</th>
-    <th>Price per Night</th>
+    <th>Price</th>
     <th>Distance (mi)</th>
     <th>Accommodates</th>
     <th>Guest Satisfaction</th>
-    <th>Number of beds</th>
+    <th># Beds</th>
     <th>Cable TV</th>
     <th>TV</th>
     <th>Cancellation Policy</th>
@@ -92,6 +91,13 @@
   </tr>
   {% endfor %}
 </table>
+<script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+
+    </div><!-- /.container -->
+
+
+
 </body>
 
     <!-- Bootstrap core JavaScript
@@ -101,5 +107,6 @@
     <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery.min.js"><\/script>')</script>
     <script src="../../dist/js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
 </html>
