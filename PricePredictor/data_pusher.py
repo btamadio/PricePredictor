@@ -6,10 +6,7 @@
 import pandas as pd
 from sklearn.externals import joblib
 import numpy as np
-import matplotlib
 import math
-import pprint
-import seaborn as sns
 from cityScraper import transformDataFrame
 from sqlalchemy import create_engine
 from sqlalchemy_utils import database_exists, create_database
@@ -23,8 +20,8 @@ featureList = sorted(featureList)
 dbList = featureList+['lat','lon','price','acc_rating','cancel_policy','checkin_rating','cleanliness_rating','guest_sat','host_other_rev_count','is_apt','instant_book','loc_rating','num_bathrooms','num_beds','person_cap','pic_count','review_count','value_rating']
 dbList = sorted(dbList)
 dbname = 'airbnb_db'
-username = 'brian'
-pswd = ''
+username = 'postgres'
+pswd = 'abc123'
 engine = create_engine('postgresql://%s:%s@localhost/%s'%(username,pswd,dbname))
 print('postgresql://%s:%s@localhost/%s'%(username,pswd,dbname))
 print(engine.url)

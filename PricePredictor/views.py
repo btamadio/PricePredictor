@@ -38,8 +38,8 @@ def my_form_post():
     loc = (selected_df['lat'].iloc[0],selected_df['lon'].iloc[0])
     print('Querying database for room info')
     dbname = 'airbnb_db'
-    username = 'brian'
-    pswd = ''
+    username = 'postgres'
+    pswd = 'abc123'
     engine = create_engine('postgresql://%s:%s@localhost/%s'%(username,pswd,dbname))
     con = None
     con = psycopg2.connect(database = dbname, user = username, host='localhost', password=pswd)
