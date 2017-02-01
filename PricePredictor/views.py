@@ -113,5 +113,5 @@ def my_form_post():
     res['this_room'] = selected_df.to_dict('records')
 
     return render_template("results.html",
-       title = 'Home',
+       title = 'AirBnB Price Predictor',
        result = res)
