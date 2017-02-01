@@ -22,6 +22,7 @@ def index():
 @app.route('/',methods=['POST'])
 def my_form_post():
     max_dist = 1.0
+    num_results = 5
     featureList = joblib.load('PricePredictor/static/featureList_binary_v1.pkl')
     dbList = joblib.load('PricePredictor/static/dbList_binary_v1.pkl')
     importance_dict = joblib.load('PricePredictor/static/importance_dict_v1.pkl')
@@ -78,9 +79,8 @@ def my_form_post():
     full_df['sim_dist'] = full_df['feature_vec'].apply(lambda x:sim_dist(x,selected_df['feature_vec'].values[0]))
     cancel_dict = {3:'Flexible',4:'Moderate',5:'Strict'}
     # #list the 10 most similar in order of price
-    full_df = full_df.sort('sim_dist',ascending=1).head(10).sort('price',ascending=1)
+    full_df = full_df.sort('sim_dist',ascending=1).head(num_results)#.sort('price',ascending=1)
     full_df['ind'] = full_df.index
-
     full_df['price'] = full_df['price'].apply( lambda x : '${0:.0f}'.format(x) )
     full_df['distance'] = full_df['distance'].apply( lambda x : '{0:.2f}'.format(x) )
     full_df['person_cap'] = full_df['person_cap'].apply(lambda x: int(x))
@@ -109,7 +109,7 @@ def my_form_post():
     selected_df['parking'] = selected_df['amen_9'].apply(lambda x:'Yes' if x else 'No')
     selected_df['internet'] = selected_df['amen_3'].apply(lambda x:'Yes' if x else 'No')
 
-    res['suggestions'] = full_df.head(10).to_dict('records')
+    res['suggestions'] = full_df.head(num_results).to_dict('records')
     res['this_room'] = selected_df.to_dict('records')
 
     return render_template("results.html",
