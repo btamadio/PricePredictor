@@ -20,21 +20,30 @@
     <th>Price per Night</th>
     <th>Distance (mi)</th>
     <th>Accommodates</th>
-    <th>Number of beds</th>
-    <th>Number of bathrooms</th>
     <th>Guest Satisfaction</th>
-    <th>Cleanliness</th>
-
+    <th>Number of beds</th>
+    <th>Cable TV</th>
+    <th>TV</th>
+    <th>Cancellation Policy</th>
+    <th>Family Friendly</th>
+    <th>Kitchen</th>
+    <th>Free Parking</th>
+    <th>Internet</th>
   </tr>
   <tr>
     <td><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></td>
       <td>{{result.this_room[0].price}}</td>
       <td>0.0</td>
       <td>{{result.this_room[0].person_cap}}</td>
-      <td>{{result.this_room[0].num_beds}}</td>
-      <td>{{result.this_room[0].num_bathrooms}}</td>
       <td>{{result.this_room[0].guest_sat}}</td>
-      <td>{{result.this_room[0].cleanliness_rating}}</td>
+      <td>{{result.this_room[0].num_beds}}</td>
+      <td>{{result.this_room[0].cable_tv}}</td>
+      <td>{{result.this_room[0].tv}}</td>
+      <td>{{result.this_room[0].cancel_policy}}</td>
+      <td>{{result.this_room[0].family_friendly}}</td>
+      <td>{{result.this_room[0].kitchen}}</td>
+      <td>{{result.this_room[0].parking}}</td>
+      <td>{{result.this_room[0].internet}}</td>     
   </tr>
   {% for x in result.suggestions %}
   <tr>
@@ -43,10 +52,15 @@
       <td>{{x.price}}</td>
       <td>{{x.distance}}</td>
       <td>{{x.person_cap}}</td>
-      <td>{{x.num_beds}}</td>
-      <td>{{x.num_bathrooms}}</td>
       <td>{{x.guest_sat}}</td>
-      <td>{{x.cleanliness_rating}}</td>
+      <td>{{x.num_beds}}</td>
+      <td>{{x.cable_tv}}</td>
+      <td>{{x.tv}}</td>
+      <td>{{x.cancel_policy}}</td>
+      <td>{{x.family_friendly}}</td>
+      <td>{{x.kitchen}}</td>
+      <td>{{x.parking}}</td>
+      <td>{{x.internet}}</td>     
   </tr>
   {% endfor %}
 </table>
