@@ -34,13 +34,13 @@
     <div class="container">
 
       <div class="starter-template">
-	<h1>Enter URL or AirBnB Room Code</h1>
+	<h1>Enter URL or Airbnb Room Code</h1>
 	<form action="." method="POST">
 	<input type="text" name="text">
-            <input type="submit" name="my-form" value="Send">
+            <input type="submit" name="my-form" value="Find Similar Rooms">
 	</form>
 	<span>Room ID: </span><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></p>
-      </div>
+
       <table class="table table-hover">
 	  <tr>
     <th>Room ID</th>
@@ -93,7 +93,7 @@
 </table>
 <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
 <script src="static/js/bootstrap.min.js"></script>
-
+      </div>
     </div><!-- /.container -->
 
 
