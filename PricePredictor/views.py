@@ -51,8 +51,8 @@ def my_form_post():
     #calculate distance between our listing and all others
     full_df['distance'] = full_df['loc'].apply( lambda x: vincenty(x,loc).miles )
     full_df = full_df[full_df.distance < max_dist]
-#    max_price = 1.1*list_price
-#    full_df = full_df[full_df.price < max_price]
+    max_price = list_price
+    full_df = full_df[full_df.price < max_price]
     full_df = full_df[full_df.index != int(res['room_id'])]
 #    if selected_df['person_cap'].values[0] > 1:
 #        full_df = full_df[full_df.person_cap > 1]
