@@ -72,7 +72,6 @@ def find_suggestions():
             res += (v1[i]-v2[i])*importance_dict[key]*(v1[i]-v2[i])
             i+=1
         return math.sqrt(res)
-    print(len(full_df.index))
     full_df['feature_vec'] = full_df.apply(getFeatureVec,1)
 
     selected_df['feature_vec'] = selected_df.apply(getFeatureVec,1)
