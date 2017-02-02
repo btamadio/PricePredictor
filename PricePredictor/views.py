@@ -29,7 +29,14 @@ def find_suggestions():
 
 
     c=cityScraper()
-    featureDict = c.scrapeRoom(request.form['text'].strip())
+    search_text = request.form['text'].strip()
+    featureDict = c.scrapeRoom(search_text)
+
+    #TODO: check dictionary for errors here. return error page for room not found
+    if not 'room_id' in featureDict:
+        res = {'search_text':search_text}
+        return render_template("notfound.html",title = 'AirBnB Price Predictor',result = res)
+        
     max_dist = float(request.form['dist'].strip())
     room_id = str(featureDict['room_id'])
     res= {'room_id':room_id,'max_dist':max_dist}
@@ -37,6 +44,8 @@ def find_suggestions():
     selected_df = selected_df[dbList]
     list_price = int(selected_df['price'].iloc[0].strip('$'))
     loc = (selected_df['lat'].iloc[0],selected_df['lon'].iloc[0])
+    res['this_room'] = selected_df.to_dict('records')
+
     print('Querying database for room info')
     dbname = 'airbnb_db'
     username = 'postgres'
@@ -55,6 +64,11 @@ def find_suggestions():
     max_price = list_price
     full_df = full_df[full_df.price < max_price]
     full_df = full_df[full_df.index != int(res['room_id'])]
+
+    #TODO: Check length of full_df here. If zero, return error page for no suggestions
+    if len(full_df.index) == 0:
+        res['suggestions']={}
+        return render_template("results.html",title = 'AirBnB Price Predictor',result = res)
     print('Calculating feature vectors')
     def getFeatureVec(d):
         return [int(d[i]) for i in featureList]
@@ -110,7 +124,7 @@ def find_suggestions():
     selected_df['internet'] = selected_df['amen_3'].apply(lambda x:'Yes' if x else 'No')
 
     res['suggestions'] = full_df.head(num_results).to_dict('records')
-    res['this_room'] = selected_df.to_dict('records')
+
 
     return render_template("results.html",
        title = 'AirBnB Price Predictor',
