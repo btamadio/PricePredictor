@@ -27,14 +27,19 @@ def my_form_post():
     dbList = joblib.load('PricePredictor/static/dbList_binary_v1.pkl')
     importance_dict = joblib.load('PricePredictor/static/importance_dict_v1.pkl')
     amen_name_dict = joblib.load('PricePredictor/static/amen_name_dict.pkl')
+
+#    intStr = request.form['text'].strip()
+#    inputURL = False
+#    if 'airbnb.com' in inStr:
+#        inputURL = True
+    
+    
     res= {'room_id':request.form['text'].strip()}
     c=cityScraper()
     featureDict = c.scrapeRoom(res['room_id'])
     selected_df = pd.DataFrame(featureDict,index=[int(res['room_id'])])
     selected_df = selected_df[dbList]
     list_price = int(selected_df['price'].iloc[0].strip('$'))
-    #selected_df['price'].apply(lambda x: int(x.strip('$')))
-#    print(selected_df['price'])
     loc = (selected_df['lat'].iloc[0],selected_df['lon'].iloc[0])
     print('Querying database for room info')
     dbname = 'airbnb_db'
@@ -54,8 +59,6 @@ def my_form_post():
     max_price = list_price
     full_df = full_df[full_df.price < max_price]
     full_df = full_df[full_df.index != int(res['room_id'])]
-#    if selected_df['person_cap'].values[0] > 1:
-#        full_df = full_df[full_df.person_cap > 1]
     print('Calculating feature vectors')
     def getFeatureVec(d):
         return [int(d[i]) for i in featureList]
