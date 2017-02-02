@@ -34,13 +34,20 @@
     <div class="container">
 
       <div class="starter-template">
-	<h1>Enter URL or Airbnb Room Code</h1>
+	<h1>Airbnb Deal Finder</h1>
 	<form action="." method="POST">
-	<input type="text" name="text">
-            <input type="submit" name="my-form" value="Find Similar Rooms">
-	</form>
-	<span>Room ID: </span><a href="http://www.airbnb.com/rooms/{{result.room_id}}">{{result.room_id}}</a></p>
-
+    <form action="#" method="POST">
+    <div>
+      <label for="text">Find rooms like </label>
+      <input id="textbox" type="text" name="text" value={{result.room_id}}>
+      <label for="dist">within </label>
+      <input id="distbox" type="text" name="dist" value={{result.max_dist}}>
+      <span>miles</span>
+    </div>
+    <div>
+      <input type="submit" name="my-form" value="Search">
+    </div>
+    </form>
       <table class="table table-hover">
 	  <tr>
     <th>Room ID</th>

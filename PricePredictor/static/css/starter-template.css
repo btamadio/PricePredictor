@@ -1,3 +1,11 @@
 tr#selected{
     background-color:Bisque;
 }
+
+#distbox{
+    width:50px;
+}
+
+#textbox{
+    width:100px;
+}

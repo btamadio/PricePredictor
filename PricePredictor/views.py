@@ -20,21 +20,15 @@ def index():
    return render_template("index.html",
        title = 'AirBnB Price Predictor')
 @app.route('/',methods=['POST'])
-def my_form_post():
-    max_dist = 1.0
+def find_suggestions():
     num_results = 5
     featureList = joblib.load('PricePredictor/static/featureList_binary_v1.pkl')
     dbList = joblib.load('PricePredictor/static/dbList_binary_v1.pkl')
     importance_dict = joblib.load('PricePredictor/static/importance_dict_v1.pkl')
     amen_name_dict = joblib.load('PricePredictor/static/amen_name_dict.pkl')
 
-#    intStr = request.form['text'].strip()
-#    inputURL = False
-#    if 'airbnb.com' in inStr:
-#        inputURL = True
-    
-    
     res= {'room_id':request.form['text'].strip()}
+    max_dist = float(request.form['dist'].strip())
     c=cityScraper()
     featureDict = c.scrapeRoom(res['room_id'])
     selected_df = pd.DataFrame(featureDict,index=[int(res['room_id'])])
@@ -76,7 +70,9 @@ def my_form_post():
             res += (v1[i]-v2[i])*importance_dict[key]*(v1[i]-v2[i])
             i+=1
         return math.sqrt(res)
+    print(len(full_df.index))
     full_df['feature_vec'] = full_df.apply(getFeatureVec,1)
+
     selected_df['feature_vec'] = selected_df.apply(getFeatureVec,1)
     print('Calculating similarity distance')
     full_df['sim_dist'] = full_df['feature_vec'].apply(lambda x:sim_dist(x,selected_df['feature_vec'].values[0]))
@@ -114,7 +110,7 @@ def my_form_post():
 
     res['suggestions'] = full_df.head(num_results).to_dict('records')
     res['this_room'] = selected_df.to_dict('records')
-
+    res['max_dist'] = max_dist
     return render_template("results.html",
        title = 'AirBnB Price Predictor',
        result = res)
