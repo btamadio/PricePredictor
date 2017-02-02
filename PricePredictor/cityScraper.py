@@ -106,7 +106,9 @@ class cityScraper:
             df[df.index==int(room_id)].to_csv(f,header=False)
             f.close()
     def scrapeRoom(self,room_id):
-        url = 'https://www.airbnb.com/rooms/'+room_id
+        url = room_id
+        if not 'airbnb.com' in room_id:
+            url = 'https://www.airbnb.com/rooms/'+room_id
         print('Scraping room info from ',url)
         featDict = {}
 
@@ -123,12 +125,7 @@ class cityScraper:
             listing = soup.find('meta',id='_bootstrap-listing')
             if listing:
                 listing_dict = json.loads(listing.get('content'))
-                #amen_name_dict = joblib.load('amen_name_dict.pkl')
-                #for amen in listing_dict['listing']['listing_amenities']:
-                #    amen_name_dict[amen['id']] = amen['name']
-                #joblib.dump(amen_name_dict,'amen_name_dict.pkl',compress=1)
-                #for key in sorted (amen_name_dict):
-                    #print (key,':',amen_name_dict[key])
+                featDict['room_id'] = listing_dict['listing']['id']
                 for d in listing_dict['listing']['space_interface']:
                     if d['label'] == 'Bathrooms:':
                         featDict['num_bathrooms'] = float(d['value'])

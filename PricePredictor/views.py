@@ -18,7 +18,7 @@ from pprint import pprint
 @app.route('/')
 def index():
    return render_template("index.html",
-       title = 'AirBnB Price Predictor')
+       title = 'AirBnB Deal Finder')
 @app.route('/',methods=['POST'])
 def find_suggestions():
     num_results = 5
@@ -27,11 +27,13 @@ def find_suggestions():
     importance_dict = joblib.load('PricePredictor/static/importance_dict_v1.pkl')
     amen_name_dict = joblib.load('PricePredictor/static/amen_name_dict.pkl')
 
-    res= {'room_id':request.form['text'].strip()}
-    max_dist = float(request.form['dist'].strip())
+
     c=cityScraper()
-    featureDict = c.scrapeRoom(res['room_id'])
-    selected_df = pd.DataFrame(featureDict,index=[int(res['room_id'])])
+    featureDict = c.scrapeRoom(request.form['text'].strip())
+    max_dist = float(request.form['dist'].strip())
+    room_id = str(featureDict['room_id'])
+    res= {'room_id':room_id,'max_dist':max_dist}
+    selected_df = pd.DataFrame(featureDict,index=[int(room_id)])
     selected_df = selected_df[dbList]
     list_price = int(selected_df['price'].iloc[0].strip('$'))
     loc = (selected_df['lat'].iloc[0],selected_df['lon'].iloc[0])
@@ -110,7 +112,7 @@ def find_suggestions():
 
     res['suggestions'] = full_df.head(num_results).to_dict('records')
     res['this_room'] = selected_df.to_dict('records')
-    res['max_dist'] = max_dist
+
     return render_template("results.html",
        title = 'AirBnB Price Predictor',
        result = res)
