@@ -21,6 +21,7 @@ def index():
        title = 'AirBnB Deal Finder')
 @app.route('/',methods=['POST'])
 def find_suggestions():
+    cancel_dict = {3:'Flexible',4:'Moderate',5:'Strict'}
     num_results = 5
     featureList = joblib.load('PricePredictor/static/featureList_binary_v1.pkl')
     dbList = joblib.load('PricePredictor/static/dbList_binary_v1.pkl')
@@ -44,7 +45,7 @@ def find_suggestions():
     selected_df = selected_df[dbList]
     list_price = int(selected_df['price'].iloc[0].strip('$'))
     loc = (selected_df['lat'].iloc[0],selected_df['lon'].iloc[0])
-    res['this_room'] = selected_df.to_dict('records')
+
 
     print('Querying database for room info')
     dbname = 'airbnb_db'
@@ -67,8 +68,21 @@ def find_suggestions():
 
     #TODO: Check length of full_df here. If zero, return error page for no suggestions
     if len(full_df.index) == 0:
+        selected_df['person_cap'] = selected_df['person_cap'].apply(lambda x: int(x))
+        selected_df['guest_sat'] = selected_df['guest_sat'].apply(lambda x: int(x))
+        selected_df['num_beds'] = selected_df['num_beds'].apply(lambda x:int(x))
+        selected_df['cable_tv'] = selected_df['amen_2'].apply(lambda x:'Yes' if x else 'No')
+        selected_df['tv'] = selected_df['amen_1'].apply(lambda x:'Yes' if x else 'No')
+        selected_df['cancel_policy'] = selected_df['cancel_policy'].apply( lambda x: cancel_dict[x])
+        selected_df['cleanliness_rating'] = selected_df['cleanliness_rating'].apply(lambda x: int(x))
+        selected_df['family_friendly'] = selected_df['amen_31'].apply(lambda x:'Yes' if x else 'No')
+        selected_df['kitchen'] = selected_df['amen_8'].apply(lambda x:'Yes' if x else 'No')
+        selected_df['parking'] = selected_df['amen_9'].apply(lambda x:'Yes' if x else 'No')
+        selected_df['internet'] = selected_df['amen_3'].apply(lambda x:'Yes' if x else 'No')
+        res['this_room'] = selected_df.to_dict('records')
         res['suggestions']={}
         return render_template("results.html",title = 'AirBnB Price Predictor',result = res)
+    
     print('Calculating feature vectors')
     def getFeatureVec(d):
         return [int(d[i]) for i in featureList]
@@ -91,9 +105,9 @@ def find_suggestions():
     selected_df['feature_vec'] = selected_df.apply(getFeatureVec,1)
     print('Calculating similarity distance')
     full_df['sim_dist'] = full_df['feature_vec'].apply(lambda x:sim_dist(x,selected_df['feature_vec'].values[0]))
-    cancel_dict = {3:'Flexible',4:'Moderate',5:'Strict'}
+
     # #list the 10 most similar in order of price
-    full_df = full_df.sort('sim_dist',ascending=1).head(num_results)#.sort('price',ascending=1)
+    full_df = full_df.sort_values(by='sim_dist',ascending=1).head(num_results)#.sort('price',ascending=1)
     full_df['ind'] = full_df.index
     full_df['price'] = full_df['price'].apply( lambda x : '${0:.0f}'.format(x) )
     full_df['distance'] = full_df['distance'].apply( lambda x : '{0:.2f}'.format(x) )
@@ -109,8 +123,6 @@ def find_suggestions():
     full_df['parking'] = full_df['amen_9'].apply(lambda x:'Yes' if x else 'No')
     full_df['internet'] = full_df['amen_3'].apply(lambda x:'Yes' if x else 'No')
 
-#    selected_df['price'] = selected_df['price'].apply( lambda x : '${0:.0f}'.format(x) )
-#    selected_df['distance'] = selected_df['distance'].apply( lambda x : '{0:.2f}'.format(x) )
     selected_df['person_cap'] = selected_df['person_cap'].apply(lambda x: int(x))
     selected_df['guest_sat'] = selected_df['guest_sat'].apply(lambda x: int(x))
     selected_df['num_beds'] = selected_df['num_beds'].apply(lambda x:int(x))
@@ -122,9 +134,8 @@ def find_suggestions():
     selected_df['kitchen'] = selected_df['amen_8'].apply(lambda x:'Yes' if x else 'No')
     selected_df['parking'] = selected_df['amen_9'].apply(lambda x:'Yes' if x else 'No')
     selected_df['internet'] = selected_df['amen_3'].apply(lambda x:'Yes' if x else 'No')
-
+    res['this_room'] = selected_df.to_dict('records')
     res['suggestions'] = full_df.head(num_results).to_dict('records')
-
 
     return render_template("results.html",
        title = 'AirBnB Price Predictor',
