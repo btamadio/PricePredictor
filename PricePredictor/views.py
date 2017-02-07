@@ -122,7 +122,7 @@ def find_suggestions():
     full_df['kitchen'] = full_df['amen_8'].apply(lambda x:'Yes' if x else 'No')
     full_df['parking'] = full_df['amen_9'].apply(lambda x:'Yes' if x else 'No')
     full_df['internet'] = full_df['amen_3'].apply(lambda x:'Yes' if x else 'No')
-
+    full_df['loc_rating'] = full_df['loc_rating'].apply(lambda x: int(x))
     selected_df['person_cap'] = selected_df['person_cap'].apply(lambda x: int(x))
     selected_df['guest_sat'] = selected_df['guest_sat'].apply(lambda x: int(x))
     selected_df['num_beds'] = selected_df['num_beds'].apply(lambda x:int(x))
