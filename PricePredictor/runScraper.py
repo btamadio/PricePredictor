@@ -13,4 +13,5 @@ c=cityScraper()
 #        print (line.rstrip())
 #for room in roomList:
 #    c.scrapeRoom(str(room))
-c.scrapeRoom('https://www.airbnb.com/rooms/14549750?s=thbT0Z9D')
+c.scrapeRoom('1478708')
+

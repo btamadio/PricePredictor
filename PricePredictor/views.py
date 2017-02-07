@@ -36,7 +36,7 @@ def find_suggestions():
     #TODO: check dictionary for errors here. return error page for room not found
     if not 'room_id' in featureDict:
         res = {'search_text':search_text}
-        return render_template("notfound.html",title = 'AirBnB Price Predictor',result = res)
+        return render_template("notfound.html",title = 'AirBnB Deal Finder',result = res)
         
     max_dist = float(request.form['dist'].strip())
     room_id = str(featureDict['room_id'])
@@ -81,7 +81,7 @@ def find_suggestions():
         selected_df['internet'] = selected_df['amen_3'].apply(lambda x:'Yes' if x else 'No')
         res['this_room'] = selected_df.to_dict('records')
         res['suggestions']={}
-        return render_template("results.html",title = 'AirBnB Price Predictor',result = res)
+        return render_template("results.html",title = 'Airbnb Deal Finder',result = res)
     
     print('Calculating feature vectors')
     def getFeatureVec(d):
@@ -138,5 +138,5 @@ def find_suggestions():
     res['suggestions'] = full_df.head(num_results).to_dict('records')
 
     return render_template("results.html",
-       title = 'AirBnB Price Predictor',
+       title = 'Airbnb Price Predictor',
        result = res)
