@@ -116,12 +116,12 @@ class cityScraper:
             req = Request(url,headers={'User-Agent':'Mozilla/5.0'})
             page = urlopen(req).read()
             soup = BeautifulSoup(page,"lxml")
-            price_span = soup.find('span',id='book-it-price-string')
-            children = price_span.findChildren()
-            if len(children) > 0:
-                featDict['price'] = children[0].text
+            room_options = soup.find('meta',id='_bootstrap-room_options')
+            if (room_options):
+                room_opt_dict = json.loads(room_options.get('content'))
+                featDict['price'] = room_opt_dict['nightly_price']
             else:
-                featDict['price'] = 0
+                featDict['price'] = '0'
             listing = soup.find('meta',id='_bootstrap-listing')
             if listing:
                 listing_dict = json.loads(listing.get('content'))
